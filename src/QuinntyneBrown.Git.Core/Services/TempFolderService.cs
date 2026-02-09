@@ -2,7 +2,7 @@ using System.Security.Cryptography;
 using System.Text;
 using Microsoft.Extensions.Logging;
 
-namespace QuinntyneBrown.Git.Cli.Services;
+namespace QuinntyneBrown.Git.Core.Services;
 
 public class TempFolderService : ITempFolderService
 {

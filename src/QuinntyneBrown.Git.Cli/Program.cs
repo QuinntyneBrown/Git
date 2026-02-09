@@ -1,14 +1,12 @@
 using System.CommandLine;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using QuinntyneBrown.Git.Cli.Commands;
-using QuinntyneBrown.Git.Cli.Services;
+using QuinntyneBrown.Git.Core;
 
 var host = Host.CreateDefaultBuilder(args)
     .ConfigureServices((context, services) =>
     {
-        services.AddSingleton<IGitService, GitService>();
-        services.AddSingleton<ITempFolderService, TempFolderService>();
+        services.AddGitCore();
     })
     .Build();
 

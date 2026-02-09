@@ -1,4 +1,4 @@
-namespace QuinntyneBrown.Git.Cli.Services;
+namespace QuinntyneBrown.Git.Core.Services;
 
 public interface ITempFolderService
 {

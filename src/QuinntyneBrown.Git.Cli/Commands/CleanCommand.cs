@@ -1,7 +1,7 @@
 using System.CommandLine;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using QuinntyneBrown.Git.Cli.Services;
+using QuinntyneBrown.Git.Core.Services;
 
 namespace QuinntyneBrown.Git.Cli.Commands;
 
