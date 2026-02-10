@@ -15,5 +15,7 @@ var rootCommand = new RootCommand("Git CLI tool for managing temporary git repos
 rootCommand.AddCommand(CloneCommand.Create(host.Services));
 rootCommand.AddCommand(CleanCommand.Create(host.Services));
 rootCommand.AddCommand(PurgeCommand.Create(host.Services));
+rootCommand.AddCommand(DiffCommand.Create(host.Services));
+rootCommand.AddCommand(FilesCommand.Create(host.Services));
 
 return await rootCommand.InvokeAsync(args);

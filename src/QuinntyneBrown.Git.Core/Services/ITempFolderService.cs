@@ -9,4 +9,6 @@ public interface ITempFolderService
     void WriteMarker(string url);
     void DeleteFolder(string url);
     void DeleteAllFolders();
+    void SaveTag(string tag, string url);
+    string? ResolveTag(string tag);
 }

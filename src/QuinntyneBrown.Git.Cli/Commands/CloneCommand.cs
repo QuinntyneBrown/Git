@@ -9,23 +9,46 @@ public static class CloneCommand
 {
     public static Command Create(IServiceProvider services)
     {
-        var urlArgument = new Argument<string>("url", "The URL of the git repository to clone");
+        var urlArgument = new Argument<string?>("url", () => null, "The URL of the git repository to clone");
         var branchOption = new Option<string?>("--branch", "The branch to clone or verify");
         branchOption.AddAlias("-b");
         var commitOption = new Option<string?>("--commit", "The commit to clone or verify");
+        var tagOption = new Option<string?>("--tag", "A label to save or look up an existing clone");
+        tagOption.AddAlias("-t");
 
         var command = new Command("clone", "Clone a git repository to a temporary folder")
         {
             urlArgument,
             branchOption,
-            commitOption
+            commitOption,
+            tagOption
         };
 
-        command.SetHandler(async (string url, string? branch, string? commit) =>
+        command.SetHandler(async (string? url, string? branch, string? commit, string? tag) =>
         {
             var logger = services.GetRequiredService<ILoggerFactory>().CreateLogger("Clone");
             var gitService = services.GetRequiredService<IGitService>();
             var tempFolderService = services.GetRequiredService<ITempFolderService>();
+
+            // Resolve tag to URL when no URL is provided
+            if (string.IsNullOrWhiteSpace(url))
+            {
+                if (string.IsNullOrWhiteSpace(tag))
+                {
+                    logger.LogError("Provide a URL or a --tag to look up an existing clone.");
+                    return;
+                }
+
+                var resolved = tempFolderService.ResolveTag(tag);
+                if (resolved == null)
+                {
+                    Console.Error.WriteLine($"Tag '{tag}' does not exist. Provide a URL to clone the repository:");
+                    Console.Error.WriteLine($"  git-cli clone <url> --tag {tag}");
+                    return;
+                }
+
+                url = resolved;
+            }
 
             if (tempFolderService.FolderExists(url))
             {
@@ -33,6 +56,11 @@ public static class CloneCommand
 
                 if (await IsAtExpectedRef(gitService, existingPath, branch, commit))
                 {
+                    if (!string.IsNullOrWhiteSpace(tag))
+                    {
+                        tempFolderService.SaveTag(tag, url);
+                    }
+
                     logger.LogInformation("Repository already cloned at {Path}", existingPath);
                     Console.WriteLine(existingPath);
                     return;
@@ -55,6 +83,12 @@ public static class CloneCommand
             if (success)
             {
                 tempFolderService.WriteMarker(url);
+
+                if (!string.IsNullOrWhiteSpace(tag))
+                {
+                    tempFolderService.SaveTag(tag, url);
+                }
+
                 Console.WriteLine(folder);
             }
             else
@@ -66,7 +100,7 @@ public static class CloneCommand
                     Directory.Delete(folder, true);
                 }
             }
-        }, urlArgument, branchOption, commitOption);
+        }, urlArgument, branchOption, commitOption, tagOption);
 
         return command;
     }

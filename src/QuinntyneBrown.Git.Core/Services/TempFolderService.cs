@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 using Microsoft.Extensions.Logging;
 
 namespace QuinntyneBrown.Git.Core.Services;
@@ -67,6 +68,39 @@ public class TempFolderService : ITempFolderService
         ClearReadOnlyAttributes(new DirectoryInfo(BasePath));
         Directory.Delete(BasePath, true);
         _logger.LogInformation("Deleted all temporary folders in {Path}", BasePath);
+    }
+
+    public void SaveTag(string tag, string url)
+    {
+        EnsureBasePath();
+        var tags = LoadTags();
+        tags[tag] = url;
+        SaveTags(tags);
+        _logger.LogInformation("Saved tag '{Tag}' for {Url}", tag, url);
+    }
+
+    public string? ResolveTag(string tag)
+    {
+        var tags = LoadTags();
+        return tags.TryGetValue(tag, out var url) ? url : null;
+    }
+
+    private string TagsFilePath => Path.Combine(BasePath, "tags.json");
+
+    private Dictionary<string, string> LoadTags()
+    {
+        if (!File.Exists(TagsFilePath))
+            return new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+
+        var json = File.ReadAllText(TagsFilePath);
+        return JsonSerializer.Deserialize<Dictionary<string, string>>(json)
+            ?? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+    }
+
+    private void SaveTags(Dictionary<string, string> tags)
+    {
+        var json = JsonSerializer.Serialize(tags, new JsonSerializerOptions { WriteIndented = true });
+        File.WriteAllText(TagsFilePath, json);
     }
 
     private static string GetHash(string url)

@@ -43,6 +43,17 @@ public class GitService : IGitService
         return await RunAsync(process, "git checkout", cancellationToken);
     }
 
+    public async Task<bool> FetchAsync(string repoPath, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Fetching all remotes in {Path}", repoPath);
+
+        var process = CreateGitProcess(repoPath);
+        process.StartInfo.ArgumentList.Add("fetch");
+        process.StartInfo.ArgumentList.Add("--all");
+
+        return await RunAsync(process, "git fetch", cancellationToken);
+    }
+
     public async Task<string?> GetCurrentBranchAsync(string repoPath, CancellationToken cancellationToken = default)
     {
         var process = CreateGitProcess(repoPath);
@@ -58,6 +69,17 @@ public class GitService : IGitService
         var process = CreateGitProcess(repoPath);
         process.StartInfo.ArgumentList.Add("rev-parse");
         process.StartInfo.ArgumentList.Add("HEAD");
+
+        return await RunForOutputAsync(process, cancellationToken);
+    }
+
+    public async Task<string?> DiffAsync(string repoPath, string fromRef, string toRef, CancellationToken cancellationToken = default)
+    {
+        _logger.LogInformation("Diffing {From}..{To} in {Path}", fromRef, toRef, repoPath);
+
+        var process = CreateGitProcess(repoPath);
+        process.StartInfo.ArgumentList.Add("diff");
+        process.StartInfo.ArgumentList.Add($"{fromRef}..{toRef}");
 
         return await RunForOutputAsync(process, cancellationToken);
     }
